@@ -30,6 +30,11 @@ const imageBody = z.object({
   publicId: z.string().min(1),
 });
 
+const discountBody = z.object({
+  percent:     z.number().int().min(1).max(99),
+  activeUntil: z.string().datetime(),
+}).nullable().optional();
+
 export const createProductBody = z.object({
   name:        z.string().trim().min(1),
   price:       z.string().trim().min(1),
@@ -43,6 +48,7 @@ export const createProductBody = z.object({
   colors:      z.array(z.string().trim().min(1)).optional(),
   active:      z.boolean().optional(),
   promoted:    z.boolean().optional(),
+  discount:    discountBody,
 });
 export type CreateProductBody = z.infer<typeof createProductBody>;
 
@@ -59,6 +65,7 @@ export const updateProductBody = z.object({
   colors:      z.array(z.string().trim().min(1)).optional(),
   active:      z.boolean().optional(),
   promoted:    z.boolean().optional(),
+  discount:    discountBody,
 });
 export type UpdateProductBody = z.infer<typeof updateProductBody>;
 

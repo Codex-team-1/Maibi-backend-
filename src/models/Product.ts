@@ -25,6 +25,11 @@ const productSchema = new Schema(
     // admin flags
     active:      { type: Boolean, default: true },
     promoted:    { type: Boolean, default: false },
+    // discount promotion
+    discount: {
+      percent:     { type: Number, default: null, min: 1, max: 99 },
+      activeUntil: { type: Date,   default: null },
+    },
     // denormalised metrics
     totalSold:   { type: Number, default: 0, min: 0 },
     revenue:     { type: Number, default: 0, min: 0 },

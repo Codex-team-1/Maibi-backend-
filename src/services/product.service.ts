@@ -101,22 +101,36 @@ export async function getAdminProduct(id: number): Promise<AdminProductDTO> {
 export async function createProduct(body: CreateProductBody): Promise<AdminProductDTO> {
   const id = await nextProductId();
   const inStock = body.inStock ?? (body.stock ?? 0) > 0;
-  // Default to 'New' when the admin doesn't pick a badge; expiry is handled in the serializer.
   const badgeLabel = body.badgeLabel !== undefined ? body.badgeLabel : 'New';
-  const doc = new Product({ ...body, id, inStock, badgeLabel });
+  const { discount, ...rest } = body as CreateProductBody & { discount?: { percent: number; activeUntil: string } | null };
+  const discountData = discount
+    ? { percent: discount.percent, activeUntil: new Date(discount.activeUntil) }
+    : { percent: null, activeUntil: null };
+  const doc = new Product({ ...rest, id, inStock, badgeLabel, discount: discountData });
   await doc.save();
   return toAdminProductDTO(doc.toObject());
 }
 
 export async function updateProduct(id: number, body: UpdateProductBody): Promise<AdminProductDTO> {
-  const update: Record<string, unknown> = { ...body };
+  const { discount, ...rest } = body as UpdateProductBody & { discount?: { percent: number; activeUntil: string } | null };
+  const update: Record<string, unknown> = { ...rest };
+
   // Auto-sync inStock when stock is explicitly set
-  if (typeof body.stock === 'number' && body.inStock === undefined) {
-    update.inStock = body.stock > 0;
+  if (typeof rest.stock === 'number' && rest.inStock === undefined) {
+    update.inStock = rest.stock > 0;
+  }
+
+  // Handle discount: null clears it, object sets it
+  if (discount === null) {
+    update['discount.percent']     = null;
+    update['discount.activeUntil'] = null;
+  } else if (discount) {
+    update['discount.percent']     = discount.percent;
+    update['discount.activeUntil'] = new Date(discount.activeUntil);
   }
 
   const product = await Product.findOneAndUpdate({ id }, update, {
-    new: true,
+    returnDocument: 'after',
     runValidators: true,
   }).lean();
   if (!product) throw AppError.notFound('Product not found');

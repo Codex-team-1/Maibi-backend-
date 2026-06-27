@@ -6,6 +6,12 @@ export interface ProductImage {
   publicId: string;
 }
 
+export interface ProductDiscount {
+  percent: number;
+  activeUntil: string;
+  discountedPrice: string;
+}
+
 /** Public product shape. */
 export interface ProductDTO {
   id: number;
@@ -19,6 +25,8 @@ export interface ProductDTO {
   images: ProductImage[];
   sizes: string[];
   colors: string[];
+  rating: { ratingCount: number; ratingAvg: number };
+  discount?: ProductDiscount;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +37,8 @@ export interface AdminProductDTO extends ProductDTO {
   promoted: boolean;
   totalSold: number;
   revenue: number;
+  /** Raw discount data for the admin form (not expired-filtered). */
+  discountRaw?: { percent: number; activeUntil: string | null };
 }
 
 export interface OrderItemDTO {

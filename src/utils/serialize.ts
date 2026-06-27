@@ -41,8 +41,36 @@ interface ProductLean {
   promoted?: boolean | null;
   totalSold?: number | null;
   revenue?: number | null;
+  rating?: { ratingCount?: number; ratingSum?: number; ratingAvg?: number } | null;
+  discount?: { percent?: number | null; activeUntil?: Date | string | null } | null;
   createdAt?: unknown;
   updatedAt?: unknown;
+}
+
+function formatPrice(n: number): string {
+  return n.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' DA';
+}
+
+function parseNumericPrice(price: string): number {
+  return parseInt(price.replace(/\s/g, '').replace('DA', ''), 10) || 0;
+}
+
+function resolveDiscount(
+  discount: ProductLean['discount'],
+  price: string,
+): ProductDTO['discount'] {
+  if (!discount?.percent || !discount?.activeUntil) return undefined;
+  const until = discount.activeUntil instanceof Date
+    ? discount.activeUntil
+    : new Date(discount.activeUntil as string);
+  if (isNaN(until.getTime()) || Date.now() > until.getTime()) return undefined;
+  const original = parseNumericPrice(price);
+  const discounted = Math.round(original * (1 - discount.percent / 100));
+  return {
+    percent:         discount.percent,
+    activeUntil:     until.toISOString(),
+    discountedPrice: formatPrice(discounted),
+  };
 }
 
 export function toProductDTO(p: ProductLean): ProductDTO {
@@ -57,22 +85,40 @@ export function toProductDTO(p: ProductLean): ProductDTO {
     images:      (p.images ?? []) as ProductImage[],
     sizes:       p.sizes ?? [],
     colors:      p.colors ?? [],
+    rating: {
+      ratingCount: p.rating?.ratingCount ?? 0,
+      ratingAvg:   p.rating?.ratingAvg   ?? 0,
+    },
     createdAt:   toISO(p.createdAt),
     updatedAt:   toISO(p.updatedAt),
   };
   const badge = resolveBadge(p.badgeLabel, p.createdAt);
   if (badge) dto.badgeLabel = badge;
+  const disc = resolveDiscount(p.discount, p.price);
+  if (disc) dto.discount = disc;
   return dto;
 }
 
 export function toAdminProductDTO(p: ProductLean): AdminProductDTO {
-  return {
-    ...toProductDTO(p),
+  const base = toProductDTO(p);
+  const dto: AdminProductDTO = {
+    ...base,
     active:    p.active ?? true,
     promoted:  p.promoted ?? false,
     totalSold: p.totalSold ?? 0,
     revenue:   p.revenue ?? 0,
   };
+  // Always expose raw discount fields so the admin form can pre-populate them.
+  if (p.discount?.percent && p.discount?.activeUntil) {
+    const until = p.discount.activeUntil instanceof Date
+      ? p.discount.activeUntil
+      : new Date(p.discount.activeUntil as string);
+    dto.discountRaw = {
+      percent:     p.discount.percent,
+      activeUntil: isNaN(until.getTime()) ? null : until.toISOString(),
+    };
+  }
+  return dto;
 }
 
 interface OrderItemLean extends OrderItemDTO {

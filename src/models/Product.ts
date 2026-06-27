@@ -2,8 +2,10 @@ import { Schema, model, type InferSchemaType, type HydratedDocument } from 'mong
 import { CATEGORIES } from '../constants/categories.js';
 import { BADGE_LABELS } from '../constants/enums.js';
 
-const imageSchema = new Schema(
-  { url: { type: String, required: true }, publicId: { type: String, required: true } },
+const imageSchema = new Schema({
+  url: { type: String, required: true },
+  publicId: { type: String, required: true }
+},
   { _id: false },
 );
 

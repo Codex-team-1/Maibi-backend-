@@ -7,7 +7,7 @@ mongoose.set('strictQuery', true);
  * Connect to MongoDB with bounded retry + exponential backoff. Resolves once
  * connected; rejects after the final attempt so `server.ts` can abort boot.
  */
-export async function connectDB(uri: string = env.NODE_ENV === 'production' ? env.PRO_MONGODB_URI : env.DEV_MONGODB_URI): Promise<void> {
+export async function connectDB(uri: string = env.NODE_ENV === 'production' ? env.PRO_MONGODB_URI : (env.DEV_MONGODB_URI ?? env.PRO_MONGODB_URI)): Promise<void> {
   const maxAttempts = 5;
   let attempt = 0;
 

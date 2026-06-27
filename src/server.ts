@@ -1,11 +1,22 @@
 import type { Server } from 'node:http';
+import bcrypt from 'bcryptjs';
 import { env } from './config/env.js';
 import { connectDB, disconnectDB } from "./config/db.js";
 import './config/cloudinary.js';
 import { createApp } from './app.js';
+import { Admin } from './models/Admin.js';
+
+async function ensureAdmin(): Promise<void> {
+  const exists = await Admin.exists({ email: env.ADMIN_EMAIL.toLowerCase() });
+  if (exists) return;
+  const passwordHash = await bcrypt.hash(env.ADMIN_PASSWORD, 12);
+  await Admin.create({ email: env.ADMIN_EMAIL.toLowerCase(), passwordHash });
+  console.log(`✅ Admin account created (${env.ADMIN_EMAIL})`);
+}
 
 async function bootstrap(): Promise<void> {
   await connectDB();
+  await ensureAdmin();
 
   const app = createApp();
   const server: Server = app.listen(env.PORT, () => {

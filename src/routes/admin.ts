@@ -10,6 +10,7 @@ import {
   patchOrder,
   cancelOrder,
   refundOrder,
+  newOrdersSince,
   listCustomOrders,
   getOneCustomOrder,
   patchCustomOrder,
@@ -24,6 +25,7 @@ export const adminOrderRoutes = Router();
 adminOrderRoutes.use(requireAuth);
 
 // ── Orders ──────────────────────────────────────────────────────────────────
+adminOrderRoutes.get('/orders/new-since', asyncHandler(newOrdersSince));
 adminOrderRoutes.get('/orders', validate(adminOrderListQuery, 'query'), asyncHandler(listOrders));
 adminOrderRoutes.get('/orders/:id', asyncHandler(getOneOrder));
 adminOrderRoutes.patch('/orders/:id', validate(adminOrderPatch), asyncHandler(patchOrder));

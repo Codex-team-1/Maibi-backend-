@@ -10,11 +10,11 @@ import type { CreateReviewBody, OrderRatingBody } from '../validators/review.sch
  */
 export async function postStoreReview(req: Request, res: Response): Promise<void> {
   const body = validated<CreateReviewBody>(req);
-  const review = await createStoreReview(body);
-  if (body.orderCode) {
+  const { review, alreadyExisted } = await createStoreReview(body);
+  if (body.orderCode && !alreadyExisted) {
     await rateOrderProducts(body.orderCode, body.rating);
   }
-  res.status(201).json(toReviewDTO(review.toObject()));
+  res.status(alreadyExisted ? 200 : 201).json(toReviewDTO(review.toObject()));
 }
 
 /** Dedicated order-product rating endpoint. */

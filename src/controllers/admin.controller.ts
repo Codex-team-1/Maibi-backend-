@@ -111,7 +111,7 @@ export async function patchOrder(req: Request, res: Response): Promise<void> {
     }
   }
 
-  // Email on status transitions
+  // Email on status transitions (include admin's internal note in every email)
   if (body.status && body.status !== prevStatus) {
     const mailData = {
       code: dto.code,
@@ -127,6 +127,7 @@ export async function patchOrder(req: Request, res: Response): Promise<void> {
       subtotal: dto.subtotal,
       shippingFee: dto.shippingFee,
       total: dto.total,
+      note: dto.note || undefined,
     };
     if (body.status === "confirmed") {
       sendOrderConfirmedCustomer(mailData);
@@ -135,7 +136,7 @@ export async function patchOrder(req: Request, res: Response): Promise<void> {
     } else if (body.status === "delivered") {
       sendOrderDeliveredCustomer(mailData);
     } else if (body.status === "cancelled") {
-      sendOrderCancelledCustomer({ ...mailData, note: dto.note || undefined });
+      sendOrderCancelledCustomer(mailData);
     }
   }
 }
@@ -369,6 +370,32 @@ export async function refundCustomOrder(
     status: 'cancelled',
     quotedPrice: typeof dto.quotedPrice === 'number' ? dto.quotedPrice : undefined,
     note: dto.note || undefined,
+  });
+}
+
+/**
+ * GET /admin/orders/new-since?since=<ISO timestamp>
+ * Returns orders created after the given timestamp (for dashboard notifications).
+ * The client stores the last-seen timestamp in localStorage and polls this endpoint.
+ */
+export async function newOrdersSince(req: Request, res: Response): Promise<void> {
+  const since = req.query.since ? new Date(String(req.query.since)) : new Date(0);
+  const orders = await Order.find({ createdAt: { $gt: since } })
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .select('code customer wilaya total createdAt')
+    .lean();
+
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    count: orders.length,
+    orders: orders.map((o) => ({
+      id: o.code,
+      customer: o.customer,
+      wilaya: o.wilaya,
+      total: o.total,
+      createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : String(o.createdAt),
+    })),
   });
 }
 

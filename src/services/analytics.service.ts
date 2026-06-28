@@ -6,11 +6,19 @@ import { CATEGORY_COLORS, type Category } from '../constants/categories.js';
 const LOW_STOCK_THRESHOLD = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const REVENUE_MATCH = { status: { $ne: 'cancelled' } };
+const REVENUE_MATCH = { status: 'delivered' };
 
 function pctGrowth(current: number, previous: number): number {
   if (previous === 0) return current === 0 ? 0 : 100;
   return Math.round(((current - previous) / previous) * 1000) / 10;
+}
+
+export interface LowStockProduct {
+  id: number;
+  name: string;
+  stock: number;
+  category: string;
+  image?: string;
 }
 
 export interface SummaryStats {
@@ -25,6 +33,7 @@ export interface SummaryStats {
   pendingOrders: number;
   activeProducts: number;
   lowStockProducts: number;
+  lowStockList: LowStockProduct[];
   conversionRate: number;
 }
 
@@ -62,13 +71,25 @@ export async function getSummary(): Promise<SummaryStats> {
     { $group: { _id: null, revenue: { $sum: '$total' }, orders: { $sum: 1 } } },
   ]);
 
-  const [customCur, customPrev, totalCustom, activeProducts, lowStockProducts] = await Promise.all([
+  const [customCur, customPrev, totalCustom, activeProducts, lowStockDocs] = await Promise.all([
     CustomOrder.countDocuments({ createdAt: { $gte: start30 } }),
     CustomOrder.countDocuments({ createdAt: { $gte: start60, $lt: start30 } }),
     CustomOrder.countDocuments({}),
     Product.countDocuments({ active: true }),
-    Product.countDocuments({ active: true, stock: { $lte: LOW_STOCK_THRESHOLD } }),
+    Product.find({ active: true, stock: { $lte: LOW_STOCK_THRESHOLD } })
+      .sort({ stock: 1 })
+      .limit(20)
+      .select('id name stock category images')
+      .lean(),
   ]);
+
+  const lowStockList: LowStockProduct[] = lowStockDocs.map((p) => ({
+    id:       p.id,
+    name:     p.name,
+    stock:    p.stock,
+    category: p.category,
+    ...(p.images?.[0] ? { image: p.images[0].url } : {}),
+  }));
 
   const totalRevenue   = totalRevenueAll?.revenue ?? 0;
   const totalOrders    = totalRevenueAll?.orders  ?? 0;
@@ -87,9 +108,26 @@ export async function getSummary(): Promise<SummaryStats> {
     aovGrowth:           pctGrowth(curAov, prevAov),
     pendingOrders,
     activeProducts,
-    lowStockProducts,
+    lowStockProducts:    lowStockDocs.length,
+    lowStockList,
     conversionRate: 3.4,
   };
+}
+
+/** Standalone low-stock list used by the dedicated endpoint. */
+export async function getLowStockProducts(): Promise<LowStockProduct[]> {
+  const docs = await Product.find({ active: true, stock: { $lte: LOW_STOCK_THRESHOLD } })
+    .sort({ stock: 1 })
+    .limit(50)
+    .select('id name stock category images')
+    .lean();
+  return docs.map((p) => ({
+    id:       p.id,
+    name:     p.name,
+    stock:    p.stock,
+    category: p.category,
+    ...(p.images?.[0] ? { image: p.images[0].url } : {}),
+  }));
 }
 
 export interface RevenuePoint {

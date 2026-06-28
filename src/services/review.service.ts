@@ -24,13 +24,15 @@ export async function rateOrderProducts(orderCode: string, rating: number): Prom
   const productIds = [...new Set(order.items.map((i) => i.productId).filter((id): id is number => id != null))];
 
   await Promise.all(
-    productIds.map(async (id) => {
-      // 1) Accumulate count + sum, 2) recompute the average from the new totals.
-      await Product.updateOne(
-        { id },
-        { $inc: { 'rating.ratingCount': 1, 'rating.ratingSum': rating } },
-      );
-      await Product.updateOne({ id }, [
+    productIds.map((id) =>
+      // Single atomic pipeline update: increment count+sum then recompute avg.
+      Product.updateOne({ id }, [
+        {
+          $set: {
+            'rating.ratingCount': { $add: ['$rating.ratingCount', 1] },
+            'rating.ratingSum': { $add: ['$rating.ratingSum', rating] },
+          },
+        },
         {
           $set: {
             'rating.ratingAvg': {
@@ -42,8 +44,8 @@ export async function rateOrderProducts(orderCode: string, rating: number): Prom
             },
           },
         },
-      ]);
-    }),
+      ]),
+    ),
   );
 
   return productIds.length;
@@ -54,20 +56,23 @@ export async function rateOrderProducts(orderCode: string, rating: number): Prom
  * be delivered, and the same `orderCode` cannot be reviewed twice (guards
  * against double rating from re-opening the email link).
  */
-export async function createStoreReview(input: CreateReviewBody): Promise<ReviewDocument> {
+export async function createStoreReview(
+  input: CreateReviewBody,
+): Promise<{ review: ReviewDocument; alreadyExisted: boolean }> {
   if (input.orderCode) {
     await loadDeliveredOrder(input.orderCode);
-    const existing = await Review.findOne({ orderCode: input.orderCode }).lean();
-    if (existing) throw AppError.conflict('This order has already been rated');
+    const existing = await Review.findOne({ orderCode: input.orderCode });
+    if (existing) return { review: existing, alreadyExisted: true };
   }
 
-  return Review.create({
+  const review = await Review.create({
     name: input.name,
     wilaya: input.wilaya,
     comment: input.comment,
     rating: input.rating,
     orderCode: input.orderCode ?? null,
   });
+  return { review, alreadyExisted: false };
 }
 
 /** Approved reviews for the storefront carousel, newest first. */

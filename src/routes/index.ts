@@ -9,6 +9,7 @@ import { adminProductRoutes } from './admin.products.routes.js';
 import { adminOrderRoutes } from './admin.js';
 import { adminAnalyticsRoutes } from './admin.analytics.routes.js';
 import { adminProfileRoutes } from './admin.profile.routes.js';
+import { adminReviewRoutes } from './admin.reviews.routes.js';
 
 export const apiRouter = Router();
 
@@ -32,3 +33,4 @@ apiRouter.use('/admin/analytics', adminAnalyticsRoutes);
 apiRouter.use('/admin/profile', adminProfileRoutes);
 // adminOrderRoutes declares /orders/* and /custom-orders/* internally.
 apiRouter.use('/admin', adminOrderRoutes);
+apiRouter.use('/admin/reviews', adminReviewRoutes);

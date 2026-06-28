@@ -53,7 +53,7 @@ function shell(content: string, preheader = '', lang: Lang = 'ar'): string {
   const tagline = rtl ? 'أزياء جزائرية مصنوعة يدويًا' : 'Algerian Handmade Fashion';
   const footerMade = rtl ? 'صُنع بحبّ على يد حرفيّات جزائريات' : 'Made with love by Algerian artisans';
   const footerNote = rtl
-    ? 'وصلتكِ هذه الرسالة لأنّه تمّ تنفيذ طلب أو تحديثه على مايبي.<br>عندكِ سؤال؟ ردّي على هذه الرسالة — يسعدنا دائمًا مساعدتكِ.'
+    ? 'وصلتكِ هذه الرسالة لأنّه تمّ تنفيذ طلب أو تحديثه على Maibi.<br>عندكِ سؤال؟ ردّي على هذه الرسالة — يسعدنا دائمًا مساعدتكِ.'
     : "You received this email because an order was placed or updated on Maibi.<br>Questions? Simply reply to this email — we're always happy to help.";
 
   return `<!DOCTYPE html>
@@ -333,7 +333,7 @@ export async function sendOrderPlacedCustomer(o: OrderMailData): Promise<void> {
       <div style="font-size:44px;margin-bottom:16px">🎉</div>
       ${heading('استلمنا طلبكِ!')}
       <div style="height:8px"></div>
-      ${subtext(`مرحبًا <strong>${o.customer}</strong>، شكرًا لتسوّقكِ من مايبي! تمّ استلام طلبكِ وهو الآن بانتظار التأكيد من فريقنا. سنتواصل معكِ قريبًا جدًّا.`)}
+      ${subtext(`مرحبًا <strong>${o.customer}</strong>، شكرًا لتسوّقكِ من Maibi! تمّ استلام طلبكِ وهو الآن بانتظار التأكيد من فريقنا. سنتواصل معكِ قريبًا جدًّا.`)}
     </div>
 
     ${codeBox(o.code)}
@@ -355,7 +355,7 @@ export async function sendOrderPlacedCustomer(o: OrderMailData): Promise<void> {
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">عندكِ سؤال؟ ردّي على هذه الرسالة — نحن هنا من أجلكِ. 💬</p>
   `;
-  await send(o.email, `استلمنا طلبكِ! ${o.code} — مايبي`, shell(content, `تمّ استلام الطلب ${o.code}! سيؤكّده فريقنا قريبًا.`));
+  await send(o.email, `استلمنا طلبكِ! ${o.code} — Maibi`, shell(content, `تمّ استلام الطلب ${o.code}! سيؤكّده فريقنا قريبًا.`));
 }
 
 /* ── Customer: order confirmed by admin ──────────────────────────────────── */
@@ -389,11 +389,13 @@ export async function sendOrderConfirmedCustomer(o: OrderMailData): Promise<void
       ['طريقة الدفع', o.paymentMethod],
     ])}
 
+    ${o.note ? callout('📝', `<strong>ملاحظة من فريقنا:</strong> ${o.note}`, INK_MID, WARM, WARM_BORDER) : ''}
+
     ${callout('🚚', 'الوصول المتوقّع خلال <strong>3 إلى 5 أيام عمل</strong>. ستصلكِ رسالة بالشحن بمجرّد مغادرة طلبكِ بين أيدينا.', '#166534', '#F0FDF4', '#86EFAC')}
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">شكرًا لدعمكِ الحرفة الجزائرية! 🌸</p>
   `;
-  await send(o.email, `تمّ تأكيد الطلب! ${o.code} — مايبي`, shell(content, `طلبكِ ${o.code} مؤكّد وقيد التحضير.`));
+  await send(o.email, `تمّ تأكيد الطلب! ${o.code} — Maibi`, shell(content, `طلبكِ ${o.code} مؤكّد وقيد التحضير.`));
 }
 
 /* ── Customer: order shipped ─────────────────────────────────────────────── */
@@ -421,11 +423,13 @@ export async function sendOrderShippedCustomer(o: OrderMailData): Promise<void> 
       ['الهاتف', o.phone],
     ])}
 
+    ${o.note ? callout('📝', `<strong>ملاحظة من فريقنا:</strong> ${o.note}`, INK_MID, WARM, WARM_BORDER) : ''}
+
     ${callout('🕐', 'الوصول المتوقّع خلال <strong>1 إلى 3 أيام عمل</strong>. يُرجى التأكّد من وجود شخص لاستلام الطرد على العنوان أعلاه.', '#1e40af', '#EFF6FF', '#93C5FD')}
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">لا نطيق صبرًا لرؤيتكِ تفتحينه! 🎀<br>أيّ سؤال؟ ردّي على هذه الرسالة وسنساعدكِ فورًا.</p>
   `;
-  await send(o.email, `تمّ شحن طلبكِ! ${o.code} — مايبي`, shell(content, `تمّ شحن الطلب ${o.code} — يصل خلال 1 إلى 3 أيام عمل.`));
+  await send(o.email, `تمّ شحن طلبكِ! ${o.code} — Maibi`, shell(content, `تمّ شحن الطلب ${o.code} — يصل خلال 1 إلى 3 أيام عمل.`));
 }
 
 /* ── Customer: order delivered ───────────────────────────────────────────── */
@@ -436,7 +440,7 @@ export async function sendOrderDeliveredCustomer(o: OrderMailData): Promise<void
       <div style="font-size:44px;margin-bottom:16px">🌸</div>
       ${heading('وصل طلبكِ!')}
       <div style="height:8px"></div>
-      ${subtext(`نتمنّى أن ينال إعجابكِ يا <strong>${o.customer}</strong>! تمّ توصيل طلبكِ من مايبي. كلّ غرزة صُنعت بعناية — خصّيصًا لكِ.`)}
+      ${subtext(`نتمنّى أن ينال إعجابكِ يا <strong>${o.customer}</strong>! تمّ توصيل طلبكِ من Maibi. كلّ غرزة صُنعت بعناية — خصّيصًا لكِ.`)}
     </div>
 
     <div style="text-align:center;margin-bottom:28px">${statusBadge('delivered')}</div>
@@ -451,15 +455,17 @@ export async function sendOrderDeliveredCustomer(o: OrderMailData): Promise<void
     <div style="text-align:center;margin-bottom:8px">
       <div style="font-size:32px;margin-bottom:10px">⭐</div>
       <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${INK}">كيف كانت تجربتكِ؟</h2>
-      ${subtext('يسعدنا رأيكِ! <strong>قيّمي طلبكِ ومتجر مايبي</strong> — لن يستغرق سوى دقيقة ويساعدنا على التحسّن باستمرار.')}
+      ${subtext('يسعدنا رأيكِ! <strong>قيّمي طلبكِ ومتجر Maibi</strong> — لن يستغرق سوى دقيقة ويساعدنا على التحسّن باستمرار.')}
       ${ctaButton('⭐ قيّمي طلبكِ', `${ratingLink(o.code)}`)}
     </div>
 
+    ${o.note ? callout('📝', `<strong>ملاحظة من فريقنا:</strong> ${o.note}`, INK_MID, WARM, WARM_BORDER) : ''}
+
     ${callout('❤️', 'شكرًا لدعمكِ الحرفيّات الجزائريات! شراؤكِ يساعد على إبقاء الحرفة التقليدية حيّة.', PINK, PINK_LIGHT, PINK_BORDER)}
 
-    <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">أحببتِ قطعتكِ من مايبي؟ شاركي الحبّ مع صديقاتكِ. 💕</p>
+    <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">أحببتِ قطعتكِ من Maibi؟ شاركي الحبّ مع صديقاتكِ. 💕</p>
   `;
-  await send(o.email, `وصل طلبكِ! ${o.code} — مايبي`, shell(content, `تمّ توصيل الطلب ${o.code}. قيّمي طلبكِ ومتجر مايبي!`));
+  await send(o.email, `وصل طلبكِ! ${o.code} — Maibi`, shell(content, `تمّ توصيل الطلب ${o.code}. قيّمي طلبكِ ومتجر Maibi!`));
 }
 
 /* ── Customer: order cancelled ───────────────────────────────────────────── */
@@ -489,7 +495,7 @@ export async function sendOrderCancelledCustomer(o: OrderMailData): Promise<void
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">نأمل أن نراكِ مجدّدًا قريبًا. 🌸</p>
   `;
-  await send(o.email, `تمّ إلغاء الطلب — ${o.code} | مايبي`, shell(content, `تمّ إلغاء طلبكِ ${o.code}. تواصلي معنا إن احتجتِ مساعدة.`));
+  await send(o.email, `تمّ إلغاء الطلب — ${o.code} | Maibi`, shell(content, `تمّ إلغاء طلبكِ ${o.code}. تواصلي معنا إن احتجتِ مساعدة.`));
 }
 
 /* ── Customer: order refunded ────────────────────────────────────────────── */
@@ -514,7 +520,7 @@ export async function sendOrderRefundedCustomer(o: OrderMailData): Promise<void>
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">شكرًا لصبركِ — نأمل أن نخدمكِ بشكل أفضل في المرّة القادمة. 🌸</p>
   `;
-  await send(o.email, `تمّ تنفيذ الاسترداد — ${o.code} | مايبي`, shell(content, `تمّت مباشرة استرداد قيمة طلبكِ ${o.code}.`));
+  await send(o.email, `تمّ تنفيذ الاسترداد — ${o.code} | Maibi`, shell(content, `تمّت مباشرة استرداد قيمة طلبكِ ${o.code}.`));
 }
 
 /* ── Customer: new custom order placed ───────────────────────────────────── */
@@ -546,7 +552,7 @@ export async function sendCustomOrderPlacedCustomer(o: CustomOrderMailData): Pro
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">لا نطيق صبرًا لنصنع شيئًا جميلًا خصّيصًا لكِ. 🌸</p>
   `;
-  await send(o.email, `وصلنا طلبكِ المخصّص! ${o.code} — مايبي`, shell(content, `وصلنا الطلب المخصّص ${o.code}. سنرسل عرض سعر خلال 1 إلى 2 يوم.`));
+  await send(o.email, `وصلنا طلبكِ المخصّص! ${o.code} — Maibi`, shell(content, `وصلنا الطلب المخصّص ${o.code}. سنرسل عرض سعر خلال 1 إلى 2 يوم.`));
 }
 
 /* ── Customer: custom order quoted ──────────────────────────────────────── */
@@ -586,7 +592,7 @@ export async function sendCustomOrderQuotedCustomer(o: CustomOrderUpdateMailData
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">متحمّسات لتحقيق رؤيتكِ على أرض الواقع! 🌸</p>
   `;
-  await send(o.email, `عرض سعركِ جاهز! ${o.code} — مايبي`, shell(content, `عرض السعر جاهز للطلب المخصّص ${o.code}${typeof o.quotedPrice === 'number' ? ` — ${fmtDZD(o.quotedPrice)}` : ''}.`));
+  await send(o.email, `عرض سعركِ جاهز! ${o.code} — Maibi`, shell(content, `عرض السعر جاهز للطلب المخصّص ${o.code}${typeof o.quotedPrice === 'number' ? ` — ${fmtDZD(o.quotedPrice)}` : ''}.`));
 }
 
 /* ── Customer: custom order accepted / in review / in production ─────────── */
@@ -646,12 +652,12 @@ export async function sendCustomOrderConfirmedCustomer(o: CustomOrderUpdateMailD
   `;
 
   const subjectMap: Record<string, string> = {
-    in_review: `طلبكِ المخصّص قيد المراجعة — ${o.code} | مايبي`,
-    accepted:  `تمّ قبول طلبكِ المخصّص! ${o.code} — مايبي`,
-    in_production: `قطعتكِ قيد التصنيع! ${o.code} — مايبي`,
+    in_review: `طلبكِ المخصّص قيد المراجعة — ${o.code} | Maibi`,
+    accepted:  `تمّ قبول طلبكِ المخصّص! ${o.code} — Maibi`,
+    in_production: `قطعتكِ قيد التصنيع! ${o.code} — Maibi`,
   };
 
-  await send(o.email, subjectMap[o.status] ?? `تحديث طلبكِ المخصّص — ${o.code} | مايبي`, shell(content, `حالة الطلب المخصّص ${o.code}: ${STATUS_LABEL_AR[o.status] ?? o.status}.`));
+  await send(o.email, subjectMap[o.status] ?? `تحديث طلبكِ المخصّص — ${o.code} | Maibi`, shell(content, `حالة الطلب المخصّص ${o.code}: ${STATUS_LABEL_AR[o.status] ?? o.status}.`));
 }
 
 /* ── Customer: custom order shipped ─────────────────────────────────────── */
@@ -682,7 +688,7 @@ export async function sendCustomOrderShippedCustomer(o: CustomOrderUpdateMailDat
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">لا نطيق صبرًا لرؤيتكِ ترينها! 🎀</p>
   `;
-  await send(o.email, `تمّ شحن قطعتكِ المخصّصة! ${o.code} — مايبي`, shell(content, `تمّ شحن الطلب المخصّص ${o.code} — يصل خلال 1 إلى 3 أيام عمل.`));
+  await send(o.email, `تمّ شحن قطعتكِ المخصّصة! ${o.code} — Maibi`, shell(content, `تمّ شحن الطلب المخصّص ${o.code} — يصل خلال 1 إلى 3 أيام عمل.`));
 }
 
 /* ── Customer: custom order delivered ───────────────────────────────────── */
@@ -693,7 +699,7 @@ export async function sendCustomOrderDeliveredCustomer(o: CustomOrderUpdateMailD
       <div style="font-size:44px;margin-bottom:16px">🌸</div>
       ${heading('وصلت قطعتكِ المخصّصة!')}
       <div style="height:8px"></div>
-      ${subtext(`نتمنّى أن تنال إعجابكِ تمامًا يا <strong>${o.customer}</strong>! تمّ توصيل قطعتكِ الفريدة من مايبي — مصنوعة خصّيصًا لكِ على يد حرفيّاتنا.`)}
+      ${subtext(`نتمنّى أن تنال إعجابكِ تمامًا يا <strong>${o.customer}</strong>! تمّ توصيل قطعتكِ الفريدة من Maibi — مصنوعة خصّيصًا لكِ على يد حرفيّاتنا.`)}
     </div>
 
     <div style="text-align:center;margin-bottom:28px">${statusBadge('delivered')}</div>
@@ -712,7 +718,7 @@ export async function sendCustomOrderDeliveredCustomer(o: CustomOrderUpdateMailD
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">شكرًا لدعمكِ الحرفة الجزائرية. 💕</p>
   `;
-  await send(o.email, `وصلت قطعتكِ المخصّصة! ${o.code} — مايبي`, shell(content, `تمّ توصيل الطلب المخصّص ${o.code}. شكرًا لتسوّقكِ من مايبي!`));
+  await send(o.email, `وصلت قطعتكِ المخصّصة! ${o.code} — Maibi`, shell(content, `تمّ توصيل الطلب المخصّص ${o.code}. شكرًا لتسوّقكِ من Maibi!`));
 }
 
 /* ── Customer: custom order cancelled ───────────────────────────────────── */
@@ -743,7 +749,7 @@ export async function sendCustomOrderCancelledCustomer(o: CustomOrderUpdateMailD
 
     <p style="margin:24px 0 0;font-size:13px;color:${INK_SOFT};text-align:center;line-height:1.7">نأمل أن نصنع لكِ شيئًا جميلًا قريبًا. 🌸</p>
   `;
-  await send(o.email, `تمّ إلغاء الطلب المخصّص — ${o.code} | مايبي`, shell(content, `تمّ إلغاء طلبكِ المخصّص ${o.code}.`));
+  await send(o.email, `تمّ إلغاء الطلب المخصّص — ${o.code} | Maibi`, shell(content, `تمّ إلغاء طلبكِ المخصّص ${o.code}.`));
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

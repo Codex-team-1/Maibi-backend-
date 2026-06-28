@@ -5,6 +5,7 @@ import {
   getCategorySplit,
   getTopProducts,
   getRecentActivity,
+  getLowStockProducts,
 } from '../services/analytics.service.js';
 
 const noStore = (res: Response) => res.set('Cache-Control', 'no-store');
@@ -32,6 +33,11 @@ export async function topProducts(_req: Request, res: Response): Promise<void> {
 export async function activity(_req: Request, res: Response): Promise<void> {
   noStore(res);
   res.json(await getRecentActivity(8));
+}
+
+export async function lowStock(_req: Request, res: Response): Promise<void> {
+  noStore(res);
+  res.json(await getLowStockProducts());
 }
 
 /** Combined dashboard payload — one round-trip for the admin home. */
